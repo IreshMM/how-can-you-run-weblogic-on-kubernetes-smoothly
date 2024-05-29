@@ -6,10 +6,10 @@
 apiVersion: "weblogic.oracle/v8"
 kind: Domain
 metadata:
-  name: cloud-coaching
-  namespace: cloud-coaching-weblogic-domain-ns
+  name: weblogic-demo
+  namespace: weblogic-domain-ns
   labels:
-    weblogic.domainUID: cloud-coaching
+    weblogic.domainUID: weblogic-demo
 
 spec:
   # Set to 'FromModel' to indicate 'Model in Image'.
@@ -17,22 +17,22 @@ spec:
 
   # The WebLogic Domain Home, this must be a location within
   # the image for 'Model in Image' domains.
-  domainHome: /u01/domains/cloud-coaching
+  domainHome: /u01/domains/weblogic-demo
 
   # The WebLogic Server image that the Operator uses to start the domain
-  image: "eu-frankfurt-1.ocir.io/frsxwtjslf35/oracle/cloud-coaching-demo-app:1.0"
+  image: "docker.io/ireshmm/wls-demo-app:1.0"
 
   # Defaults to "Always" if image tag (version) is ':latest'
   imagePullPolicy: "Always"
 
   # Identify which Secret contains the credentials for pulling an image
-  imagePullSecrets:
-  - name: ocirsecret
+  # imagePullSecrets:
+  # - name: ocirsecret
   
   # Identify which Secret contains the WebLogic Admin credentials,
   # the secret must contain 'username' and 'password' fields.
   webLogicCredentialsSecret: 
-    name: cloud-coaching-weblogic-credentials
+    name: weblogic-credentials
 
   # Whether to include the WebLogic Server stdout in the pod's stdout, default is true
   includeServerOutInPodLog: true
@@ -49,6 +49,7 @@ spec:
   # - "ADMIN_ONLY" will start up only the administration server (no managed servers will be started)
   # - "IF_NEEDED" will start all non-clustered servers, including the administration server, and clustered servers up to their replica count.
   serverStartPolicy: "IF_NEEDED"
+  
 
   # Settings for all server pods in the domain including the introspector job pod
   serverPod:
@@ -66,6 +67,11 @@ spec:
       requests:
         cpu: "250m"
         memory: "768Mi"
+    livenessProbe:
+      failureThreshold: 5
+      initialDelaySeconds: 120
+      periodSeconds: 60
+      successThreshold: 1
 
   # The desired behavior for starting the domain's administration server.
   adminServer:
@@ -125,7 +131,7 @@ spec:
       #configMap: playground-wdt-config-map
 
       # All 'FromModel' domains require a runtimeEncryptionSecret with a 'password' field
-      runtimeEncryptionSecret: cloud-coaching-runtime-encryption-secret
+      runtimeEncryptionSecret: runtime-encryption-secret
 
     # Secrets that are referenced by model yaml macros
     # (the model yaml in the optional configMap or in the image)
